@@ -87,7 +87,9 @@ def find_bipartite(graph):
         raise Exception("only 1 el")
     red_ones = []
     blue_ones = []
-    color_up(graph, graph.keys[0], True, red_ones, blue_ones)
+    for vert in graph.vertices:
+        if vert not in red_ones and vert not in blue_ones:
+            color_up(graph, vert, True, red_ones, blue_ones)
     if graph.len != len(red_ones) + len(blue_ones):
         raise Exception("more than 1 component")
     return red_ones, blue_ones
