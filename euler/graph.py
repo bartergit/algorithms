@@ -71,9 +71,9 @@ def is_eulerian(graph):
 
 def color_up(graph, ind, is_red, red_ones, blue_ones):
     if is_red:
-        red_ones.append(ind)
+        red_ones[ind] = True
     else:
-        blue_ones.append(ind)
+        blue_ones[ind] = True
     for vert in graph[ind]:
         if (is_red and vert in red_ones) or (not is_red and vert in blue_ones):
             raise Exception("not bipartite")
@@ -85,14 +85,14 @@ def color_up(graph, ind, is_red, red_ones, blue_ones):
 def find_bipartite(graph):
     if graph.len == 1:
         raise Exception("only 1 el")
-    red_ones = []
-    blue_ones = []
+    red_ones = {}
+    blue_ones = {}
     for vert in graph.vertices:
         if vert not in red_ones and vert not in blue_ones:
             color_up(graph, vert, True, red_ones, blue_ones)
     if graph.len != len(red_ones) + len(blue_ones):
         raise Exception("more than 1 component")
-    return red_ones, blue_ones
+    return list(red_ones.keys()), list(blue_ones.keys())
 
 
 def is_bipartite(graph):

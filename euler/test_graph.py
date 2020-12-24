@@ -89,7 +89,7 @@ class TestGraph(unittest.TestCase):
 
     def test_is_bipartite_5(self):
         g = Graph({1: [], 2: []})
-        self.assertFalse(is_bipartite(g))
+        self.assertTrue(is_bipartite(g))
 
     def test_is_bipartite_6(self):
         g = Graph({1: [2]})
