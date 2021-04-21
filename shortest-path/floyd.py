@@ -44,4 +44,25 @@ def find_firestation(graph):
 
 
 if __name__ == "__main__":
+    g = Graph(9)
+    s = 0; a = 1; c = 2; e = 4; f=5; d=6; b=7; t=8;
+    # [s: 0, a: 3, c: 4, e:inf, f: 1, d: -7, b:-4, t:-8, -11]
+    g.connect(s, a, 3)
+    g.connect(s, c, 4)
+    g.connect(s, e, 4)
+    g.connect(a, e, 3)
+    g.connect(a, b, 4)
+    g.connect(a, c, 4)
+    g.connect(c, e, -3)
+    g.connect(c, b, -3)
+    g.connect(c, f, 3)
+    g.connect(e, d, -5)
+    g.connect(e, f, -1)
+    g.connect(f, t, 3)
+    g.connect(f, b, -1)
+    g.connect(d, f, -3)
+    g.connect(d, t, -3)
+    g.connect(b, d, 4)
+    g.connect(b, t, -3)
+    print(floyd(g))
     pass

@@ -49,3 +49,38 @@ def find_firestation(graph):
         if firestation_weight > weight:
             firestation, firestation_weight = i, weight
     return firestation, firestation_weight
+
+if __name__ == "__main__":
+    g = Graph(7)
+    {s: 0, e: 1, d: 2, a: 3, b: 3, t: 4, c: 5}
+    g.connect(0, 1, 3)
+    g.connect(1, 2, 6)
+    g.connect(1, 3, 7)
+    g.connect(0, 4, 1)
+    g.connect(0, 3, 5)
+    g.connect(3, 4, 7)
+    g.connect(1, 4, 3)
+    g.connect(2, 5, 3)
+    g.connect(6, 5, 2)
+    g.connect(4, 5, 5)
+    g.connect(4, 2, 6)
+    g.connect(6, 2, 1)
+    g.connect(3, 6, 4)
+    g.connect(4, 6, 1)
+    print(dijkstra(g, 0))
+    # g.connect(s, a, 3)
+    # g.connect(a, b, 6)
+    # g.connect(a, c, 7)
+    # g.connect(s, e, 1)
+    # g.connect(s, c, 5)
+    # g.connect(c, e, 7)
+    # g.connect(a, e, 3)
+    # g.connect(b, t, 3)
+    # g.connect(d, t, 2)
+    # g.connect(e, t, 5)
+    # g.connect(e, b, 6)
+    # g.connect(d, b, 1)
+    # g.connect(c, d, 4)
+    # g.connect(e, d, 1)
+    
+

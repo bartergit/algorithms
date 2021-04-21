@@ -50,7 +50,7 @@ func Prim(edges []Edge) (tree []Edge) {
 	for _, edge := range edges {
 		visited[edge.a], visited[edge.b] = false, false
 	}
-	vertex := "a"
+	vertex := "1"
 	visited[vertex] = true
 	for i := 0; i < len(visited) - 1; i++ {
 		for _, edge := range edges {
@@ -66,6 +66,11 @@ func Prim(edges []Edge) (tree []Edge) {
 }
 
 func main() {
-	fmt.Println("run tests pls")
-	fmt.Println(Prim([]Edge{{"a", "b", 7}, {"c", "e", 5}, {"b", "c", 8}, {"a", "d", 5}, {"d", "e", 15}, {"d", "f", 6}, {"f", "g", 11}, {"e", "f", 8}, {"e", "g", 9}, {"b", "e", 7}, {"d", "b", 9}}, ))
+	s:= Prim([]Edge{{"1", "16", 6}, {"2", "8", 1}, {"2", "3", 1}, {"2", "11", 3}, {"2", "7", 1}, {"2", "12", 6}, {"2", "5", 5}, {"3", "15", 6}, {"4", "15", 4}, {"5", "13", 6}, {"6", "9", 5}, {"6", "7", 6}, {"6", "8", 2}, {"7", "10", 6}, {"7", "16", 2}, {"7", "11", 6}, {"9", "14", 3}, {"10", "14", 6}, {"12", "14", 6}, {"12", "13", 4}, {"14", "15", 6}})
+	fmt.Println(s)
+	sum:=0
+	for i := 0; i < len(s); i++ {
+		sum += s[i].w
+	}
+	fmt.Println(sum)
 }
