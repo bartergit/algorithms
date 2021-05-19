@@ -1,6 +1,5 @@
 import random
 from typing import Tuple
-import math
 import bitstring
 
 
@@ -12,8 +11,9 @@ def f2(u, w, x, y, z):
     return u ** 0 * w ** 0 * x ** 1 * y ** 1 * z ** 2 + u ** 0 * w ** 0 * x ** 0 * y ** 0 * z ** 1 + u ** 2 * w ** 2 * x ** 2 * y ** 1 * z ** 0 + u ** 2 * w ** 0 * x ** 2 * y ** 1 * z ** 0 + u ** 0 * w ** 1 * x ** 2 * y ** 1 * z ** 0
 
 
-N = 50
-ITERATION_NUMBER = 50
+N = 200
+ITERATION_NUMBER = 300
+BOUNDARY = 300
 probability_1 = 0.1
 probability_2 = 0.1
 
@@ -29,7 +29,7 @@ class ErrorWithInfo(Exception):
 
 class Species:
     def __init__(self, target_function, right_result, values=None):
-        self.values = values or [random.uniform(-300, 300) for _ in range(5)]
+        self.values = values or [random.randint(-BOUNDARY, BOUNDARY) for _ in range(5)]
         self.target_function = target_function
         self.right_result = right_result
         self.fitness = None
@@ -43,41 +43,40 @@ class Species:
 
     def mutate(self, probability: float):
         for index, gen in enumerate(self.values):
-            gen = bin(gen)[2:]
-            gen = "0" * (32 - len(gen)) + gen
-            bitarray = bitstring.BitArray(bin=gen)
+            bitarray = bitstring.BitArray(f"int:16={gen}")
             for i, _ in enumerate(bitarray):
                 if random.uniform(0, 1) < probability:
                     bitarray.set(not bitarray[i], i)
-            value = bitarray.float
-            if not math.isnan(value):
-                self.values[index] = value
+            value = normalize(bitarray.int, BOUNDARY)
+            self.values[index] = value
         self.calculate_fitness()
 
+def normalize(number, boundary):
+    if abs(number) > boundary:
+        return abs(number) % boundary * (1 if number > 0 else -1)
+    return number
 
-def convert_float_to_int(value):
-    return int("0b" + bitstring.BitArray(float=value, length=32).bin, 2)
-
-
-def combine(first_gen: float, second_gen: float, mask: int):
-    father_bit = convert_float_to_int(first_gen)
-    mother_bit = convert_float_to_int(second_gen)
+def combine(first_gen: int, second_gen: int, mask: int):
+    father_bit = first_gen
+    mother_bit = second_gen
     mask2 = ~mask
     first_gen = (father_bit & mask) | (mother_bit & mask2)
     second_gen = (father_bit & mask2) | (mother_bit & mask)
+    first_gen = normalize(first_gen, BOUNDARY)
+    second_gen = normalize(second_gen, BOUNDARY)
     return first_gen, second_gen
 
 
-def single_point_combine(first_gen: float, second_gen: float):
-    return combine(first_gen, second_gen, int("0b" + "1" * 16 + "0" * 16, 2))
+def single_point_combine(first_gen: int, second_gen: int):
+    return combine(first_gen, second_gen, int("0b" + "1" * 8 + "0" * 8, 2))
 
 
-def multipoint_combine(first_gen: float, second_gen: float):
+def multipoint_combine(first_gen: int, second_gen: int):
     return combine(first_gen, second_gen, int("0b" + ("1" * 4 + "0" * 4) * 2, 2))
 
 
-def swap(first_gen: float, second_gen: float):
-    return convert_float_to_int(second_gen), convert_float_to_int(first_gen)
+def swap(first_gen: int, second_gen: int):
+    return second_gen, first_gen
 
 
 def combine_parents(mother: Species, father: Species) -> Tuple[Species, Species]:
@@ -93,8 +92,8 @@ def combine_parents(mother: Species, father: Species) -> Tuple[Species, Species]
         first_gen, second_gen = combine_function(father_bit, mother.values[i])
         first_gens.append(first_gen)
         second_gens.append(second_gen)
-    return Species(mother.target_function, mother.right_result, values=first_gens),\
-        Species(mother.target_function, mother.right_result, values=second_gens)
+    return Species(mother.target_function, mother.right_result, values=first_gens), \
+           Species(mother.target_function, mother.right_result, values=second_gens)
 
 
 def sort_generation(generation: list[Species]) -> None:
@@ -109,7 +108,6 @@ def mutate_generation(generation: list[Species], probability: float) -> None:
 def produce_new_generation(old_generation: list[Species]) -> list[Species]:
     new_generation = []
     random.shuffle(old_generation)
-    right_result = old_generation[0].right_result
     for i in range(0, len(old_generation), 2):
         new_generation += combine_parents(old_generation[i], old_generation[i + 1])
     sort_generation(new_generation)
@@ -123,7 +121,14 @@ def next_generation(old_generation: list[Species]):
     fitness_array = [species.fitness for species in old_generation]
     overall_fitness = sum(fitness_array)
     chances = [fitness / overall_fitness for fitness in fitness_array]
-    parents = random.choices(old_generation, weights=chances, k=N)
+    parents = []
+    potential_parents = old_generation[:]
+    while len(parents) != N:
+        parent = random.choices(potential_parents, weights=chances)[0]
+        i = potential_parents.index(parent)
+        potential_parents.pop(i)
+        chances.pop(i)
+        parents.append(parent)
     new_generation = produce_new_generation(parents)
     final_generation = new_generation + old_generation
     sort_generation(final_generation)
@@ -132,21 +137,22 @@ def next_generation(old_generation: list[Species]):
 
 def find_solution(target_function, right_result):
     generation = [Species(target_function, right_result) for _ in range(N)]
+    iteration_counter = 0
     try:
         for _ in range(ITERATION_NUMBER):
             generation = next_generation(generation)
+            iteration_counter += 1
     except ErrorWithInfo as error:
-        return error.info.get("solution")
-    return generation[0].values
+        return error.info.get("solution"), iteration_counter
+    return generation[0].values, iteration_counter
 
 
 def main() -> None:
-    random.seed(1000)
-    solution = find_solution(f, -50)
-    print(f"answer is {f(*solution)}\nsolution is {solution}\nfidelity is {f(*solution) + 50}\n")
-
-    solution = find_solution(f2, -50)
-    print(f"answer is {f2(*solution)}\nsolution is {solution}\nfidelity is {f2(*solution) + 50}\n")
+    random.seed(10)
+    solution, iteration_counter = find_solution(f, -50)
+    print(f"answer is {f(*solution)}\nsolution is {solution}\niteration number {iteration_counter}\n")
+    solution, iteration_counter = find_solution(f2, -50)
+    print(f"answer is {f2(*solution)}\nsolution is {solution}\niteration number {iteration_counter}\n")
 
 
 if __name__ == '__main__':
