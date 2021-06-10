@@ -13,9 +13,8 @@ def f2(u, w, x, y, z):
 
 N = 200
 ITERATION_NUMBER = 300
-BOUNDARY = 300
-probability_1 = 0.1
-probability_2 = 0.1
+BOUNDARY = 200
+probability = 0.1
 
 
 class ErrorWithInfo(Exception):
@@ -51,12 +50,10 @@ class Species:
             self.values[index] = value
         self.calculate_fitness()
 
-
 def normalize(number, boundary):
     if abs(number) > boundary:
         return abs(number) % boundary * (1 if number > 0 else -1)
     return number
-
 
 def combine(first_gen: int, second_gen: int, mask: int):
     father_bit = first_gen
@@ -85,13 +82,7 @@ def combine_parents(mother: Species, father: Species) -> Tuple[Species, Species]
     first_gens = []
     second_gens = []
     for i, father_bit in enumerate(father.values):
-        if i == 2:
-            combine_function = single_point_combine
-        elif i in [1, 3]:
-            combine_function = multipoint_combine
-        else:
-            combine_function = swap
-        first_gen, second_gen = combine_function(father_bit, mother.values[i])
+        first_gen, second_gen = single_point_combine(father_bit, mother.values[i])
         first_gens.append(first_gen)
         second_gens.append(second_gen)
     return Species(mother.target_function, mother.right_result, values=first_gens), \
@@ -114,8 +105,8 @@ def produce_new_generation(old_generation: list[Species]) -> list[Species]:
         new_generation += combine_parents(old_generation[i], old_generation[i + 1])
     sort_generation(new_generation)
     n = len(new_generation) // 2
-    mutate_generation(new_generation[:n], probability_1)
-    mutate_generation(new_generation[n:], probability_2)
+    # mutate_generation(new_generation[:n], probability)
+    mutate_generation(new_generation[n:], probability)
     return new_generation
 
 
@@ -150,7 +141,7 @@ def find_solution(target_function, right_result):
 
 
 def main() -> None:
-    # random.seed(11)
+    random.seed(11)
     solution, iteration_counter = find_solution(f, -50)
     print(f"answer is {f(*solution)}\nsolution is {solution}\niteration number {iteration_counter}\n")
     solution, iteration_counter = find_solution(f2, -50)
